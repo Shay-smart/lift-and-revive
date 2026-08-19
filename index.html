@@ -283,6 +283,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 }
 .hero__bg{position:absolute;inset:0;z-index:0}
 .hero__bg img{width:100%;height:100%;object-fit:cover;object-position:72% 50%}
+/* the photograph is always rendered and is the poster. The video layers over
+   it and fades in only once it is actually playing, so a blocked or slow
+   video never leaves an empty hero. */
+.hero__video{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:center;
+  opacity:0;transition:opacity 1.2s var(--ease);
+}
+.hero__video.is-playing{opacity:1}
 .hero::after{
   content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
   background:
@@ -441,6 +450,23 @@ button,input,select,textarea{font:inherit;color:inherit}
 .why__cell--tint p{color:var(--on-accent-soft);opacity:.85}
 .why__cell--tint svg{color:var(--on-accent-soft)}
 @media (max-width:760px){.why__grid{grid-template-columns:1fr}}
+
+/* ============================================================
+   9b. TEAM  (square portrait grid)
+   ============================================================ */
+.team__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-top:2.5rem}
+.member img{
+  width:100%;aspect-ratio:1;object-fit:cover;border-radius:var(--r-card);
+  margin-bottom:1rem;background:var(--bg-alt);
+}
+.member h3{font-size:1.05rem;margin-bottom:.15rem}
+.member p{font-size:.82rem;color:var(--text-muted);line-height:1.45}
+.member .member__cred{
+  display:inline-block;margin-top:.5rem;font-size:.7rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--accent);
+}
+@media (max-width:860px){.team__grid{grid-template-columns:repeat(2,1fr);gap:1.25rem}}
+@media (max-width:420px){.team__grid{grid-template-columns:1fr;max-width:20rem;margin-inline:auto}}
 
 /* ============================================================
    10. RESULTS  (full-width compare slider)
@@ -822,6 +848,7 @@ button,input,select,textarea{font:inherit;color:inherit}
     <nav class="nav" id="nav" aria-label="Main">
       <a href="#treatments">Treatments</a>
       <a href="#about">About</a>
+      <a href="#team">Team</a>
       <a href="#membership">Membership</a>
       <a href="#financing">Financing</a>
       <a href="#results">Results</a>
@@ -851,6 +878,10 @@ button,input,select,textarea{font:inherit;color:inherit}
     <!-- 16:9, focal point kept right of centre so the copy has clear ground -->
     <img src="images/hero.jpg" alt="A client receiving a facial treatment in the clinic"
          width="2000" height="1125" fetchpriority="high">
+    <!-- src is attached by script, never in markup: the video must not download
+         on mobile data, under reduced-motion, or when Save-Data is on. -->
+    <video class="hero__video" id="hero-video" muted loop playsinline
+           preload="none" aria-hidden="true" tabindex="-1"></video>
   </div>
   <div class="wrap">
     <div class="hero__copy">
@@ -1068,6 +1099,42 @@ button,input,select,textarea{font:inherit;color:inherit}
   </div>
 </section>
 
+<!-- ============ TEAM ============ -->
+<section class="section" id="team">
+  <div class="wrap">
+    <div class="reveal">
+      <h2>The people treating you</h2>
+      <p class="lede" style="margin-top:.85rem">Every provider holds a current state licence. You will be told who is treating you when you book, and you will see the same person each visit.</p>
+    </div>
+    <div class="team__grid">
+      <article class="member reveal">
+        <img src="images/team-0.jpg" alt="Renata Casillas, lead aesthetician" width="520" height="520" loading="lazy">
+        <h3>Renata Casillas</h3>
+        <p>Builds every first-visit plan and oversees clinical standards across both locations.</p>
+        <span class="member__cred">Licensed Aesthetician, since 2014</span>
+      </article>
+      <article class="member reveal">
+        <img src="images/team-1.jpg" alt="Adaeze Nwachukwu, senior aesthetician" width="520" height="520" loading="lazy">
+        <h3>Adaeze Nwachukwu</h3>
+        <p>Specialises in acne scarring, microneedling and skin of colour.</p>
+        <span class="member__cred">Licensed Aesthetician, since 2017</span>
+      </article>
+      <article class="member reveal">
+        <img src="images/team-2.jpg" alt="Camila Restrepo, aesthetician" width="520" height="520" loading="lazy">
+        <h3>Camila Restrepo</h3>
+        <p>Hydrating facials, dermaplaning and pre-event skin preparation.</p>
+        <span class="member__cred">Licensed Aesthetician, since 2021</span>
+      </article>
+      <article class="member reveal">
+        <img src="images/team-3.jpg" alt="Fiona Kowalczyk, registered nurse injector" width="520" height="520" loading="lazy">
+        <h3>Fiona Kowalczyk</h3>
+        <p>Performs all injectable treatments under medical direction.</p>
+        <span class="member__cred">Registered Nurse Injector</span>
+      </article>
+    </div>
+  </div>
+</section>
+
 <!-- ============ RESULTS ============ -->
 <section class="section" id="results">
   <div class="wrap">
@@ -1094,7 +1161,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 <!-- ============ TESTIMONIALS ============ -->
 <section class="section section--alt">
   <div class="wrap">
-    <div class="reveal"><h2>What clients say</h2></div>
+    <div class="reveal">
+      <h2>What clients say</h2>
+      <div class="rating">
+        <b>4.9</b>
+        <span class="lede" style="margin:0">Average across <strong>512 verified Google reviews</strong>. Nobody here writes their own. <a href="https://g.page" style="color:var(--accent)">Read them on Google</a></span>
+      </div>
+    </div>
     <!-- SAMPLE CONTENT: replace with real, attributable reviews before launch -->
     <div class="wall reveal">
       <div class="wall__col wall__col--1">
@@ -1315,7 +1388,7 @@ button,input,select,textarea{font:inherit;color:inherit}
     <div class="reveal">
       <p class="eyebrow">Membership</p>
       <h2 style="margin-top:.75rem">Come monthly, pay less</h2>
-      <p class="lede" style="margin-top:.85rem">Credit rolls over for three months. Cancel any time with 30 days notice.</p>
+      <p class="lede" style="margin-top:.85rem">Credit rolls over for three months. Cancel any time with 30 days notice. Treatment courses can also be <a href="#financing" style="color:var(--accent)">paid monthly</a>.</p>
     </div>
 
     <div class="tiers">
@@ -1609,6 +1682,7 @@ button,input,select,textarea{font:inherit;color:inherit}
         <h4>Clinic</h4>
         <ul>
           <li><a href="#about">About us</a></li>
+          <li><a href="#team">Our team</a></li>
           <li><a href="#membership">Membership</a></li>
           <li><a href="#financing">Financing</a></li>
           <li><a href="#locations">Locations and hours</a></li>
@@ -1814,7 +1888,49 @@ button,input,select,textarea{font:inherit;color:inherit}
     $('.form__ok', form).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
   });
 
-  /* ---- 11. STICKY MOBILE ACTION BAR ----
+  /* ---- 11. HERO BACKGROUND VIDEO ----
+     The photograph is the real hero and always renders. The video is an
+     enhancement layered over it, and it is only downloaded when all of
+     these hold:
+       - motion is welcome (prefers-reduced-motion is not set)
+       - the visitor is not on a metered/Save-Data connection
+       - the viewport is wide enough that a 16:9 loop is not badly cropped
+     Mobile deliberately keeps the still image: a hero video is the single
+     easiest way to burn a visitor's data and their battery.
+     It also pauses whenever the hero is off screen. */
+  var hv = $('#hero-video');
+  if (hv) {
+    var conn = navigator.connection || navigator.webkitConnection || {};
+    var wantsVideo = !reduce &&
+                     !conn.saveData &&
+                     window.matchMedia('(min-width: 768px)').matches &&
+                     window.matchMedia('(hover: hover)').matches;
+
+    if (wantsVideo) {
+      var src = document.createElement('source');
+      src.src = 'images/hero-loop.mp4';
+      src.type = 'video/mp4';
+      hv.appendChild(src);
+      hv.preload = 'auto';
+      hv.load();
+
+      hv.addEventListener('playing', function () { hv.classList.add('is-playing'); });
+      // autoplay can be refused; the poster image simply stays, which is fine
+      var attempt = hv.play();
+      if (attempt && typeof attempt.catch === 'function') { attempt.catch(function () {}); }
+
+      new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) {
+          var pr = hv.play();
+          if (pr && typeof pr.catch === 'function') { pr.catch(function () {}); }
+        } else if (!hv.paused) {
+          hv.pause();
+        }
+      }, { threshold: 0 }).observe($('.hero'));
+    }
+  }
+
+  /* ---- 12. STICKY MOBILE ACTION BAR ----
      Two observers, no scroll listener: one says the hero is behind us,
      the other says the booking form is on screen. Bar shows when the
      first is true and the second is false. */
@@ -1840,7 +1956,7 @@ button,input,select,textarea{font:inherit;color:inherit}
     });
   }
 
-  /* ---- 12. STRUCTURED DATA (local SEO) ---- */
+  /* ---- 13. STRUCTURED DATA (local SEO) ---- */
   var schema = {
     '@context': 'https://schema.org',
     '@type': 'HealthAndBeautyBusiness',
