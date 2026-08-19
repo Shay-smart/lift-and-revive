@@ -448,19 +448,73 @@ button,input,select,textarea{font:inherit;color:inherit}
 .disclaimer{font-size:.78rem;color:var(--text-muted);text-align:center;margin-top:1.25rem;max-width:46rem;margin-inline:auto}
 
 /* ============================================================
-   11. TESTIMONIALS  (scroll-snap rail)
+   11. TESTIMONIALS  (three column infinite wall)
+   Hand ported from a 21st.dev React reference (sshahaider /
+   testimonials-6): three columns of quote cards looping vertically at
+   different speeds behind a soft top and bottom fade. Same idea, no
+   framework and no scroll listener, just one CSS keyframe.
+
+   Below 1024px the wall collapses to a plain static grid of every
+   quote (the columns and sets go display:contents so the cards become
+   direct grid items). Nothing is hidden at any width and nothing
+   moves until there is a tall enough window to loop inside.
    ============================================================ */
-.quotes{display:flex;gap:1.25rem;overflow-x:auto;scroll-snap-type:x mandatory;padding:.5rem .5rem 1.5rem;margin:2.5rem -.5rem 0;scrollbar-width:thin}
+.wall{
+  --wall-gap:1.25rem;
+  display:grid;grid-template-columns:1fr;gap:var(--wall-gap);
+  margin-top:2.5rem;align-items:start;
+}
+.wall__col,.wall__track,.wall__set{display:contents}
+.wall__set--dup{display:none}
 .quote{
-  scroll-snap-align:start;flex:0 0 min(23rem,84vw);
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);
-  padding:2rem;display:flex;flex-direction:column;gap:1rem;
+  padding:1.75rem;display:flex;flex-direction:column;gap:1rem;
 }
 .quote__stars{display:flex;gap:.15rem;color:var(--accent)}
 .quote__stars svg{width:1rem;height:1rem}
-.quote blockquote{font-family:var(--font-display);font-size:1.08rem;line-height:1.5;font-style:italic}
-.quote figcaption{margin-top:auto;font-size:.85rem;color:var(--text-muted)}
+.quote blockquote{font-family:var(--font-display);font-size:1.05rem;line-height:1.5;font-style:italic;margin:0}
+.quote figcaption{display:flex;align-items:center;gap:.75rem;font-size:.85rem;color:var(--text-muted)}
 .quote figcaption b{display:block;color:var(--text);font-weight:500;font-style:normal}
+.quote__mono{
+  flex:none;width:2.25rem;height:2.25rem;border-radius:50%;
+  background:var(--accent-soft);color:var(--on-accent-soft);
+  display:grid;place-items:center;font-weight:500;font-size:.85rem;letter-spacing:.02em;
+}
+@media (min-width:640px){.wall{grid-template-columns:repeat(2,1fr)}}
+
+@media (min-width:1024px){
+  .wall{
+    grid-template-columns:repeat(3,1fr);max-height:40rem;overflow:hidden;
+    -webkit-mask-image:linear-gradient(to bottom,transparent,#000 15%,#000 85%,transparent);
+    mask-image:linear-gradient(to bottom,transparent,#000 15%,#000 85%,transparent);
+  }
+  .wall__col{display:block;overflow:hidden}
+  .wall__track,.wall__set{display:flex;flex-direction:column;gap:var(--wall-gap)}
+  /* the padding makes the track exactly two sets plus two gaps tall,
+     so translating it by half its height lands perfectly on the copy */
+  .wall__track{padding-bottom:var(--wall-gap);animation:wall-loop var(--dur,54s) linear infinite;will-change:transform}
+  .wall__set--dup{display:flex}
+  .wall__col--1{--dur:52s}
+  .wall__col--2{--dur:64s}
+  .wall__col--3{--dur:58s}
+  .wall__col--2 .wall__track{animation-direction:reverse}
+  /* pause rather than the reference's slow down: changing duration
+     mid animation jumps the position, and a full stop is also the
+     WCAG 2.2.2 escape hatch for keyboard users */
+  .wall:hover .wall__track,.wall:focus-within .wall__track{animation-play-state:paused}
+}
+@keyframes wall-loop{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+
+/* reduced motion: back to the static grid. The global reduce rule
+   forces every animation to .001ms, which on an infinite loop would
+   spin the track flat out, so the animation is removed outright. */
+@media (prefers-reduced-motion:reduce){
+  .wall{max-height:none;overflow:visible;-webkit-mask-image:none;mask-image:none}
+  .wall__col,.wall__track,.wall__set{display:contents}
+  .wall__track{animation:none;transform:none;padding-bottom:0}
+  .wall__set--dup{display:none}
+}
+
 .rating{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-top:1.5rem}
 .rating b{font-family:var(--font-display);font-size:2rem;font-weight:600;color:var(--brand);line-height:1}
 
@@ -1020,35 +1074,211 @@ button,input,select,textarea{font:inherit;color:inherit}
   <div class="wrap">
     <div class="reveal"><h2>What clients say</h2></div>
     <!-- SAMPLE CONTENT: replace with real, attributable reviews before launch -->
-    <div class="quotes">
-      <figure class="quote reveal">
-        <div class="quote__stars" aria-label="5 out of 5 stars">
-          <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+    <div class="wall reveal">
+      <div class="wall__col wall__col--1">
+        <div class="wall__track">
+        <div class="wall__set">
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"They talked me out of the more expensive package on my first visit and started me on something simpler. Two years later I still book here."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">MV</span>
+            <span><b>Marisol Vega</b>Client since 2023</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"Renata explained exactly what microneedling would and would not fix on my acne scarring. No overselling. The results matched what she described."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">PR</span>
+            <span><b>Priya Raghunathan</b>Client since 2024</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"I come straight from work at 6.30 and it never feels rushed. The membership pays for itself if you come more than once a month."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">DO</span>
+            <span><b>Danielle Okonkwo</b>Refresh member</span>
+          </figcaption>
+        </figure>
         </div>
-        <blockquote>"They talked me out of the more expensive package on my first visit and started me on something simpler. Two years later I still book here."</blockquote>
-        <figcaption><b>Marisol Vega</b>Client since 2023</figcaption>
-      </figure>
-      <figure class="quote reveal">
-        <div class="quote__stars" aria-label="5 out of 5 stars">
-          <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+        <div class="wall__set wall__set--dup" aria-hidden="true">
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"They talked me out of the more expensive package on my first visit and started me on something simpler. Two years later I still book here."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">MV</span>
+            <span><b>Marisol Vega</b>Client since 2023</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"Renata explained exactly what microneedling would and would not fix on my acne scarring. No overselling. The results matched what she described."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">PR</span>
+            <span><b>Priya Raghunathan</b>Client since 2024</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"I come straight from work at 6.30 and it never feels rushed. The membership pays for itself if you come more than once a month."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">DO</span>
+            <span><b>Danielle Okonkwo</b>Refresh member</span>
+          </figcaption>
+        </figure>
         </div>
-        <blockquote>"Renata explained exactly what microneedling would and would not fix on my acne scarring. No overselling. The results matched what she described."</blockquote>
-        <figcaption><b>Priya Raghunathan</b>Client since 2024</figcaption>
-      </figure>
-      <figure class="quote reveal">
-        <div class="quote__stars" aria-label="5 out of 5 stars">
-          <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
         </div>
-        <blockquote>"I come straight from work at 6.30 and it never feels rushed. The membership pays for itself if you come more than once a month."</blockquote>
-        <figcaption><b>Danielle Okonkwo</b>Refresh member</figcaption>
-      </figure>
-      <figure class="quote reveal">
-        <div class="quote__stars" aria-label="5 out of 5 stars">
-          <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+      </div>
+      <div class="wall__col wall__col--2">
+        <div class="wall__track">
+        <div class="wall__set">
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"First place that asked about my medication before recommending anything. Small thing, but it told me everything about how they work."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">HB</span>
+            <span><b>Hollis Barrera</b>Client since 2025</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"I booked a consultation expecting a hard sell and got a treatment plan spread over eight months instead. They were happy to start small."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">TF</span>
+            <span><b>Tomas Ferreira</b>Client since 2024</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"The aftercare instructions actually get followed up on. Someone messaged two days later to check how my skin was settling."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">AK</span>
+            <span><b>Amara Kessler</b>Glow member</span>
+          </figcaption>
+        </figure>
         </div>
-        <blockquote>"First place that asked about my medication before recommending anything. Small thing, but it told me everything about how they work."</blockquote>
-        <figcaption><b>Hollis Barrera</b>Client since 2025</figcaption>
-      </figure>
+        <div class="wall__set wall__set--dup" aria-hidden="true">
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"First place that asked about my medication before recommending anything. Small thing, but it told me everything about how they work."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">HB</span>
+            <span><b>Hollis Barrera</b>Client since 2025</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"I booked a consultation expecting a hard sell and got a treatment plan spread over eight months instead. They were happy to start small."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">TF</span>
+            <span><b>Tomas Ferreira</b>Client since 2024</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"The aftercare instructions actually get followed up on. Someone messaged two days later to check how my skin was settling."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">AK</span>
+            <span><b>Amara Kessler</b>Glow member</span>
+          </figcaption>
+        </figure>
+        </div>
+        </div>
+      </div>
+      <div class="wall__col wall__col--3">
+        <div class="wall__track">
+        <div class="wall__set">
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"I have sensitive skin and had written off facials completely. They patch tested first and adjusted the strength twice before we found the right one."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">JL</span>
+            <span><b>Joanne Lindqvist</b>Client since 2022</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"Pricing was written down before anything started, including what a follow up would cost. No surprises when I got to the front desk."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">SN</span>
+            <span><b>Sabine Ntimba</b>Client since 2025</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"Parking is easy, appointments run on time, and nobody has ever tried to upsell me at checkout. That consistency is why I keep coming back."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">RC</span>
+            <span><b>Rafael Costa</b>Refresh member</span>
+          </figcaption>
+        </figure>
+        </div>
+        <div class="wall__set wall__set--dup" aria-hidden="true">
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"I have sensitive skin and had written off facials completely. They patch tested first and adjusted the strength twice before we found the right one."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">JL</span>
+            <span><b>Joanne Lindqvist</b>Client since 2022</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"Pricing was written down before anything started, including what a follow up would cost. No surprises when I got to the front desk."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">SN</span>
+            <span><b>Sabine Ntimba</b>Client since 2025</span>
+          </figcaption>
+        </figure>
+        <figure class="quote">
+          <div class="quote__stars" aria-label="5 out of 5 stars">
+            <svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg>
+          </div>
+          <blockquote>"Parking is easy, appointments run on time, and nobody has ever tried to upsell me at checkout. That consistency is why I keep coming back."</blockquote>
+          <figcaption>
+            <span class="quote__mono" aria-hidden="true">RC</span>
+            <span><b>Rafael Costa</b>Refresh member</span>
+          </figcaption>
+        </figure>
+        </div>
+        </div>
+      </div>
     </div>
     <div class="rating reveal">
       <b>4.9</b>
