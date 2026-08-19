@@ -1914,18 +1914,24 @@ button,input,select,textarea{font:inherit;color:inherit}
       hv.preload = 'auto';
       hv.load();
 
+      var heroVisible = true;
+      // play() rejects if it is called before the source is ready, so the
+      // attempt is retried once the element reports it can actually play.
+      var tryPlay = function () {
+        if (!heroVisible || hv.readyState < 2) { return; }
+        var pr = hv.play();
+        if (pr && typeof pr.catch === 'function') { pr.catch(function () {}); }
+      };
+
       hv.addEventListener('playing', function () { hv.classList.add('is-playing'); });
-      // autoplay can be refused; the poster image simply stays, which is fine
-      var attempt = hv.play();
-      if (attempt && typeof attempt.catch === 'function') { attempt.catch(function () {}); }
+      hv.addEventListener('loadeddata', tryPlay);
+      hv.addEventListener('canplay', tryPlay);
+      tryPlay();
 
       new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) {
-          var pr = hv.play();
-          if (pr && typeof pr.catch === 'function') { pr.catch(function () {}); }
-        } else if (!hv.paused) {
-          hv.pause();
-        }
+        heroVisible = entries[0].isIntersecting;
+        if (heroVisible) { tryPlay(); }
+        else if (!hv.paused) { hv.pause(); }
       }, { threshold: 0 }).observe($('.hero'));
     }
   }
